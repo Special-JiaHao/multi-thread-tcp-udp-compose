@@ -42,7 +42,7 @@ We encapsulate cumbersome `Socket API` and `multithreaded`. Developers can direc
 
 #### Example 1 : a Server with a Client
 
-![](./images/example1.png)
+​	![](./images/example1.png)
 
 - 进入命令行键入如下命令
 
@@ -62,7 +62,7 @@ We encapsulate cumbersome `Socket API` and `multithreaded`. Developers can direc
 
 #### Example 2 : a server with two client
 
-![](./images/example2.png)
+​	![](./images/example2.png)
 
 - 进入命令行键入如下命令
 
@@ -239,5 +239,4 @@ If you want to send different data, you can overwrite the `Message` struct.
 ## Contributors
 
 - Value(author)
-
 
