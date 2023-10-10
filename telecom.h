@@ -72,9 +72,23 @@ private:
 };
 
 
+class Client: public BaseCompose{
+public:
+	Client();
+	Client(sa_family_t sin_family, std::string addr, std::string tag);
+	int TCPConnect(struct sockaddr_in serverAddr, in_port_t clientPort);
+	int push_backTCPSendBuf(int sockfd, struct Message message);
+	int TCPSend(int sockfd, int flags = MSG_NOSIGNAL);
+	int UDPConnect();
+	~Client();
+	std::unordered_map<int, std::queue<Message> > TCPSendBuf;
+	std::unordered_map<int, struct sockaddr_in> TCPConnection;
+};
 
 
-class Server: public BaseCompose{
+
+
+class Server: public Client{
 public:
 	Server();
 	Server(sa_family_t sin_family, std::string addr, std::string tag);
@@ -86,19 +100,9 @@ private:
 
 	
 
-class Client: public BaseCompose{
-public:
-	Client();
-	Client(sa_family_t sin_family, std::string addr, std::string tag);
-	int TCPConnect(struct sockaddr_in serverAddr, in_port_t clientPort);
-	int push_backTCPSendBuf(int sockfd, struct Message message);
-	int TCPSend(int sockfd, int flags);
-	int UDPConnect();
-	~Client();
-private:
-	std::unordered_map<int, std::queue<Message> > TCPSendBuf;
-	std::unordered_map<int, struct sockaddr_in> TCPConnection;
-};
+
+
+
 
 
 
