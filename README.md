@@ -4,15 +4,15 @@ We encapsulate cumbersome `Socket API` and `multithreaded`. Developers can direc
 
 ## Table of contents
 
-- [License](##License)
-- [Usage](##Usage)
-  - [Example](###Example)
-  - [Quick Start](###Quick Start:)
-  - [API](###API)
-  - [Overwrite Message Struct](###Overwrite Message Struct)
-- [Subsequent optimizations](##Subsequent optimizations)
-- [Supported Platforms](##Supported Platforms)
-- [Contributors](##Contributors)
+- [License](#License)
+- [Usage](#Usage)
+  - [Example](#Example)
+  - [Quick Start](#Quick-Start)
+  - [API](#API)
+  - [Overwrite Message Struct](#Overwrite-Message-Struct)
+- [Subsequent optimizations](#Subsequent-optimizations)
+- [Supported Platforms](#Supported-Platforms)
+- [Contributors](#Contributors)
 
 ## License
 
@@ -38,7 +38,7 @@ We encapsulate cumbersome `Socket API` and `multithreaded`. Developers can direc
 
 ## Usage
 
-### Example :
+### Example
 
 #### Example 1 : a Server with a Client
 
@@ -82,7 +82,7 @@ We encapsulate cumbersome `Socket API` and `multithreaded`. Developers can direc
 
   ![](./images/example2-result.png)
 
-### Quick Start:
+### Quick Start
 
 - **Server**
 
