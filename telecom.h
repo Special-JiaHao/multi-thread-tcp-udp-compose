@@ -51,7 +51,9 @@ extern int Tele_BindAndListen(Tele_Addr addr, in_port_t port, int backlog);
 extern int Tele_Accept(int sockfd, struct sockaddr *addr, socklen_t *addrlen);
 extern int Tele_Connect(int sockfd, const struct sockaddr *addr, socklen_t addrlen);
 extern int Tele_Receive(int sockfd, void *buff, size_t nbytes, int flags);
+extern int Tele_UDPReceive(int sockfd, void *buff, size_t nbyte, int flags, struct sockaddr_in* from, socklen_t *addrlen);
 extern int Tele_Send(int sockfd, void *buff, size_t nbytes, int flags);
+extern int Tele_UDPSend(int sockfd, void *buff, size_t nbytes, int flags, const struct sockaddr_in *to, socklen_t addrlen);
 extern int Tele_GetAvailablePort();
 
 
@@ -77,9 +79,9 @@ public:
 	Client();
 	Client(sa_family_t sin_family, std::string addr, std::string tag);
 	int TCPConnect(struct sockaddr_in serverAddr, in_port_t clientPort);
-	int push_backTCPSendBuf(int sockfd, struct Message message);
+	int push_backTCPSendBuf(int sockfd, Packet message);
 	int TCPSend(int sockfd, int flags = MSG_NOSIGNAL);
-	int UDPConnect();
+	int UDPSend(in_port_t UDP_Port, sockaddr_in* serverAddr, socklen_t addrlen, void *buff, size_t nbytes, int flags = MSG_NOSIGNAL);
 	~Client();
 	std::unordered_map<int, std::queue<Message> > TCPSendBuf;
 	std::unordered_map<int, struct sockaddr_in> TCPConnection;
@@ -93,7 +95,7 @@ public:
 	Server();
 	Server(sa_family_t sin_family, std::string addr, std::string tag);
 	int openTCP_Port(in_port_t TCP_Port, int backlog = 10);
-	int openUDP_Port(in_port_t UDP_Port);
+	int openUDP_Port(in_port_t UDP_Port, int backlog = 10);
 	~Server();
 private:
 };

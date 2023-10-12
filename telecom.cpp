@@ -119,6 +119,7 @@ Tele_Bind(int sockfd, const struct sockaddr_in *addr, socklen_t addrlen)
 	{
 		perror("bind error ");
 		close(sockfd);
+		delete addr;
 		return -1;
 	}
 	return 0;
@@ -197,12 +198,27 @@ Tele_Receive(int sockfd, void *buff, size_t nbytes, int flags)
 }
 
 int 
+Tele_UDPReceive(int sockfd, void *buff, size_t nbyte, int flags, struct sockaddr_in* from, socklen_t *addrlen)
+{
+	int recvlen = recvfrom(sockfd, buff, nbyte, flags, (struct sockaddr *)from, addrlen); 
+	if(recvlen < 0)
+	{
+		perror("recv error ");
+		close(sockfd);
+		delete (Packet*)buff;
+		return -1;
+	}
+	return recvlen;
+}
+
+int 
 Tele_Connect(int sockfd, const struct sockaddr_in *addr, socklen_t addrlen)
 {
 	if(connect(sockfd, (struct sockaddr *)addr, addrlen) == -1)
 	{
 		perror("connect error ");
 		close(sockfd);
+		delete addr;
 		return -1;
 	}
 	return 0;
@@ -222,6 +238,20 @@ Tele_Send(int sockfd, void *buff, size_t nbytes, int flags)
 		printf("connect interrupt.\n");
 		close(sockfd);
 		return 0;
+	}
+	return sendlen;
+}
+
+int 
+Tele_UDPSend(int sockfd, void *buff, size_t nbytes, int flags, const struct sockaddr_in *to, socklen_t addrlen)
+{
+	int sendlen = sendto(sockfd, buff, nbytes, flags, (struct sockaddr*)to, addrlen);
+	if(sendlen < 0)
+	{
+		perror("send error ");
+		close(sockfd);
+		delete (Packet *)buff;
+		return -1;
 	}
 	return sendlen;
 }
@@ -326,11 +356,15 @@ Server::openTCP_Port(in_port_t TCP_Port, int backlog)
 	}
 	Tele_Addr addr = this->getAddress();
 	int sockfd = Tele_BindAndListen(addr, htons(TCP_Port), backlog);
-	if(sockfd == -1)	return -1;
+	if(sockfd == -1)
+	{
+		printf("TCP Port open error.\n");
+		return -1;
+	}	
 	char ip[32];
 	std::string tag = this->getTag();
 	if(tag != "")	std::cout << "(" << tag << ")";
-	printf("%s:%u open success.\n", inet_ntop(addr.first, &addr.second, ip, sizeof ip), TCP_Port);
+	printf("%s:%u[TCP] open success.\n", inet_ntop(addr.first, &addr.second, ip, sizeof ip), TCP_Port);
 	while(true)
 	{ 
 		Tele_Socket* clientSocket = new Tele_Socket();
@@ -347,17 +381,50 @@ Server::openTCP_Port(in_port_t TCP_Port, int backlog)
 }
 
 int 
-Server::openUDP_Port(in_port_t UDP_Port)
+Server::openUDP_Port(in_port_t UDP_Port, int backlog)
 {
 	if(!this->AddressIsAvailable())
 	{
 		printf("server address hasn’t been setted.\n");
 		return -1;
 	}
-	Tele_Addr addr = this->getAddress();
+  int sockfd = Tele_CreateSocketDescriptor(AF_INET, SOCK_DGRAM, IPPROTO_UDP);
+	if(sockfd == -1)
+	{
+		printf("UDP Port open error.\n");
+		return -1;
+	}	
+	struct sockaddr_in *serverAddr = Tele_CreateSocketAddress(this->getAddress(), htons(UDP_Port));
+	if(Tele_Bind(sockfd, serverAddr, sizeof (struct sockaddr_in)) == -1)
+	{
+		printf("UDP Port open error.\n");
+		return -1;
+	}
+	char ip[32];
+	std::string tag = this->getTag();
+	if(tag != "")	std::cout << "(" << tag << ")";
+	printf("%s:%u[UDP] open success.\n", inet_ntop(serverAddr->sin_family, &serverAddr->sin_addr.s_addr, ip, sizeof ip), UDP_Port);
+	while(true)
+	{
+		struct sockaddr_in* clientAddr = new sockaddr_in();
+		void *recvBuf = (void *)new Packet();
+		socklen_t *len = new socklen_t(sizeof(struct sockaddr_in));
+		int recvlen = Tele_UDPReceive(sockfd, recvBuf, sizeof (Packet), 0, clientAddr, len);
+		if(recvlen < 0)
+		{
+			printf("close UDP Port\n");
+			return -1;
+		}
+		inet_ntop(clientAddr->sin_family, &clientAddr->sin_addr.s_addr, ip, sizeof ip);
+		int port = ntohs(clientAddr->sin_port);
+		printf("received from %s:%u message:\n", ip, port);
+		std::cout << (*(Packet*)recvBuf) << std::endl;
+		delete clientAddr;
+		delete len;
+		delete (Packet*)recvBuf;
+	}
 	return 0;
 }
-
 
 
 Server::~Server() {}	
@@ -467,6 +534,33 @@ Client::TCPSend(int sockfd, int flags)
 	}
 	return cnt;
 }
+
+int 
+Client::UDPSend(in_port_t UDP_Port, struct sockaddr_in* serverAddr, socklen_t addrlen, void *sendBuff, size_t nbytes, int flags)
+{
+
+	int sockfd = Tele_CreateSocketDescriptor(AF_INET, SOCK_DGRAM, IPPROTO_UDP);
+	if(sockfd == -1)
+	{
+		printf("UDP Send error\n");
+		return -1;
+	}
+	struct sockaddr_in *clientAddr = Tele_CreateSocketAddress(this->getAddress(), htons(UDP_Port));
+	if(Tele_Bind(sockfd, clientAddr, sizeof (struct sockaddr_in)) == -1)
+	{
+		printf("UDP Send error.\n");
+		return -1;
+	}
+	int sendlen = Tele_UDPSend(sockfd, sendBuff, nbytes, flags, serverAddr, addrlen);
+	if(sendlen < 0)
+	{
+		printf("UDP Send error\n");
+		return -1;
+	}
+	close(sockfd);
+	return 0;
+}
+
 
 Client::~Client() {}
 
