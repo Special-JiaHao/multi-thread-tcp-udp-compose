@@ -1,6 +1,6 @@
-## Multi-thread TCP Components
+## Multi-thread TCP/UDP Components
 
-We encapsulate cumbersome `Socket API` and `multithreaded`. Developers can directly create their own servers or clients without paying attention to the communication details of internal TCP, so as to quickly emulate the network in the first place. 
+We encapsulate cumbersome `Socket API` and `multithreaded`. Developers can directly create their own servers or clients without paying attention to the communication details of internal TCP/UDP, so as to quickly emulate the network in the first place. 
 
 ## Table of contents
 
